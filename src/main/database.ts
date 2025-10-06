@@ -6,7 +6,8 @@ const dbPath = path.join(app.getPath('userData'), 'app.db')
 
 export const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: dbPath
+  storage: dbPath,
+  logging: false
 })
 
 export async function initDatabase() {

@@ -5,10 +5,12 @@ import icon from '../../resources/icon.png?asset'
 import { registerMacHandlers } from './ipc/macaddress'
 import { initDatabase } from './database'
 import { registerSequelizeHandler } from './ipc/sequelize'
-import { registerProtectedApi } from './ipc/protected/api'
+import { IpcRouter } from './ipc/router'
+import { SessionStore } from './ipc/protected/session-store'
+import { registerUserRoutes } from './routes/user'
 
-type TokenMap = Map<number, string>
-export const tokens: TokenMap = new Map()
+const sessionStore = new SessionStore()
+export const router = new IpcRouter({ sessionStore })
 
 function createWindow(): void {
   // Create the browser window.
@@ -20,12 +22,11 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false
     }
   })
-
-  const token = crypto.randomUUID()
-  tokens.set(mainWindow.webContents.id, token)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -61,10 +62,11 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+  registerUserRoutes(router)
   registerMacHandlers()
   initDatabase()
   registerSequelizeHandler()
-  registerProtectedApi()
+  router.generatePreloadTypes()
   createWindow()
 
   app.on('activate', function () {
