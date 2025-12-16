@@ -70,6 +70,7 @@ export async function login(ctx: IpcContext, data: LoginArgs) {
   const session = store.create(String(userId))
   if (typeof ctx.senderId === 'number') {
     store.authenticateWindow(ctx.senderId, session.token)
+    store.setBackendTokenForWindow(ctx.senderId, json.result.token)
   }
   return { success: true, token: json.result.token, user: { id: userId, username } }
 }

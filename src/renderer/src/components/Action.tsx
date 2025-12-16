@@ -6,9 +6,9 @@ import { DeleteOutlined, EditOutlined, MoreOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router'
 
 type ExpenseRecord = { id: number }
-type ActionProps = { record: ExpenseRecord; model?: string }
+type ActionProps = { record: ExpenseRecord }
 
-function Action({ record, model }: ActionProps) {
+function Action({ record }: ActionProps) {
   const navigate = useNavigate()
   const deleteMutation = useMutation({
     mutationKey: ['expense', 'delete'],

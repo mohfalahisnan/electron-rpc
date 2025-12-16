@@ -44,7 +44,7 @@ const expenseColumns = [
   {
     title: 'Action',
     key: 'action',
-    render: (_: any, record: any) => <Action data={_} record={record} model="expense" />
+    render: (_: any, record: any) => <Action record={record} />
   }
 ]
 
