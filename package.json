@@ -1,7 +1,7 @@
 {
     "name": "electron-rpc",
     "private": true,
-    "description": "Type-safe IPC for Electron with Zod validation",
+    "description": "A completely type-safe RPC (Remote Procedure Call) library for Electron applications. It eliminates the need for manual IPC event handling and ensures that your main and renderer processes stay in sync with strict TypeScript validation.",
     "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
     "scripts": {
         "build": "turbo run build",
