@@ -6,3 +6,4 @@ out
 *.log*
 
 /src/generated/prisma
+.turbo
