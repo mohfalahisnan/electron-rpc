@@ -1,6 +1,6 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { exposeRpc } from '@mavolo/electron-rpc/expose'
+import { exposeRpc } from '@mavolostudio/electron-rpc/expose'
 
 if (process.contextIsolated) {
   try {

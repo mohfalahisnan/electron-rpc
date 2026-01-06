@@ -1,5 +1,5 @@
 
-import { createClient } from "@mavolo/electron-rpc/client"
+import { createClient } from "@mavolostudio/electron-rpc/client"
 import type { userRouter } from "../../main/user.rpc"
 
 export const client = createClient<typeof userRouter>("rpc", (payload) =>

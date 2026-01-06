@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { createProcedure } from "@mavolo/electron-rpc"
+import { createProcedure } from "@mavolostudio/electron-rpc"
 
 export type AppContext = {
     user?: { id: string; role: "admin" | "user" }

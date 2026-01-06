@@ -1,4 +1,4 @@
-# @mavolo/electron-rpc
+# @mavolostudio/electron-rpc
 
 ## Introduction
 
@@ -24,7 +24,7 @@ A type-safe RPC (Remote Procedure Call) library for Electron applications, built
 ## Installation
 
 ```bash
-pnpm add @mavolo/electron-rpc
+pnpm add @mavolostudio/electron-rpc
 ```
 
 ## Usage
@@ -35,7 +35,7 @@ Create a shared file (e.g., `packages/shared/src/api.ts`) that defines your RPC 
 
 ```typescript
 import { z } from "zod";
-import { createProcedure, type RouterHandlers } from "@mavolo/electron-rpc";
+import { createProcedure, type RouterHandlers } from "@mavolostudio/electron-rpc";
 
 // Define procedures
 export const appRouter = {
@@ -60,7 +60,7 @@ export type AppRouter = typeof appRouter;
 In your Electron main process, implement the logic for the router.
 
 ```typescript
-import { registerIpcRouter } from "@mavolo/electron-rpc";
+import { registerIpcRouter } from "@mavolostudio/electron-rpc";
 import { appRouter, type AppRouter } from "./shared/api";
 
 const handlers: RouterHandlers<AppRouter, {}> = {
@@ -85,7 +85,7 @@ registerIpcRouter("ipc-channel", appRouter, handlers, () => ({}));
 Expose the RPC client to the renderer process safely.
 
 ```typescript
-import { exposeRpc } from "@mavolo/electron-rpc/expose";
+import { exposeRpc } from "@mavolostudio/electron-rpc/expose";
 
 exposeRpc({
   name: "api", // Window object key (window.api)
@@ -98,7 +98,7 @@ exposeRpc({
 Use the type-safe client in your React/Vue/Svelte app.
 
 ```typescript
-import { createClient } from "@mavolo/electron-rpc/client";
+import { createClient } from "@mavolostudio/electron-rpc/client";
 import type { AppRouter } from "./shared/api";
 
 // Create client

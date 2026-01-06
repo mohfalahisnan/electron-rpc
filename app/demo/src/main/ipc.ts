@@ -1,5 +1,5 @@
 
-import { registerIpcRouter } from "@mavolo/electron-rpc"
+import { registerIpcRouter } from "@mavolostudio/electron-rpc"
 import { createContext } from "./context"
 import { userRouter } from "./user.rpc"
 

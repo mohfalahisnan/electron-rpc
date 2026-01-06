@@ -1,5 +1,5 @@
 
-# @mavolo/electron-rpc
+# @mavolostudio/electron-rpc
 
 > **⚠️ WARNING: EARLY DEVELOPMENT**
 >
@@ -31,7 +31,7 @@ Create a router definition (usually in a shared file or main process).
 ```typescript
 // src/main/router.ts
 import { z } from "zod"
-import { createProcedure } from "@mavolo/electron-rpc"
+import { createProcedure } from "@mavolostudio/electron-rpc"
 
 type Context = { user?: { id: string } }
 const t = createProcedure<Context>()
@@ -55,7 +55,7 @@ Register the router with the actual implementation handlers.
 
 ```typescript
 // src/main/index.ts
-import { registerIpcRouter } from "@mavolo/electron-rpc"
+import { registerIpcRouter } from "@mavolostudio/electron-rpc"
 import { appRouter } from "./router"
 
 const handlers = {
@@ -79,7 +79,7 @@ Use the secure `exposeRpc` utility to enable IPC access for specific channels.
 
 ```typescript
 // src/preload/index.ts
-import { exposeRpc } from "@mavolo/electron-rpc/expose"
+import { exposeRpc } from "@mavolostudio/electron-rpc/expose"
 
 // Whitelist only the channels you registered
 exposeRpc({ whitelist: ["rpc-channel"] })
@@ -91,7 +91,7 @@ Create a type-safe client in your renderer process.
 
 ```typescript
 // src/renderer/client.ts
-import { createClient } from "@mavolo/electron-rpc/client"
+import { createClient } from "@mavolostudio/electron-rpc/client"
 import type { AppRouter } from "../main/router"
 
 // Create the client (no Node.js code imported here)

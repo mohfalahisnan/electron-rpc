@@ -5,14 +5,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin({ exclude: ['@mavolo/electron-rpc'] })],
+    plugins: [externalizeDepsPlugin({ exclude: ['@mavolostudio/electron-rpc'] })],
     build: {
       // Enable dev-time hot reloading (Electron auto-restart when main changes)
       watch: {}
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin({ exclude: ['@mavolo/electron-rpc'] })],
+    plugins: [externalizeDepsPlugin({ exclude: ['@mavolostudio/electron-rpc'] })],
     build: {
       // Enable dev-time hot reloading (reload renderers when preload changes)
       watch: {}

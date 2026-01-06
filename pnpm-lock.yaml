@@ -20,7 +20,7 @@ importers:
       '@electron-toolkit/utils':
         specifier: ^4.0.0
         version: 4.0.0(electron@38.7.2)
-      '@mavolo/electron-rpc':
+      '@mavolostudio/electron-rpc':
         specifier: workspace:*
         version: link:../../packages/electron-rpc
       '@tailwindcss/vite':
@@ -268,9 +268,6 @@ importers:
         specifier: ^4.1.11
         version: 4.3.5
     devDependencies:
-      '@cloudflare/vite-plugin':
-        specifier: ^1.17.1
-        version: 1.17.1(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2))(workerd@1.20251210.0)(wrangler@4.54.0)
       '@eslint/js':
         specifier: ^9.33.0
         version: 9.39.2
@@ -446,12 +443,6 @@ packages:
     peerDependenciesMeta:
       workerd:
         optional: true
-
-  '@cloudflare/vite-plugin@1.17.1':
-    resolution: {integrity: sha512-QHxTDhvJakWCs4mu7Q6fB02CPT5MvZkyxufwX7dCIDqLfav5ohIQ7+wdTU7AYwPJ7tF8/a82dBpwnt7+wHooXg==}
-    peerDependencies:
-      vite: ^6.1.0 || ^7.0.0
-      wrangler: ^4.54.0
 
   '@cloudflare/workerd-darwin-64@1.20251210.0':
     resolution: {integrity: sha512-Nn9X1moUDERA9xtFdCQ2XpQXgAS9pOjiCxvOT8sVx9UJLAiBLkfSCGbpsYdarODGybXCpjRlc77Yppuolvt7oQ==}
@@ -1912,9 +1903,6 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
-  '@remix-run/node-fetch-server@0.8.1':
-    resolution: {integrity: sha512-J1dev372wtJqmqn9U/qbpbZxbJSQrogNN2+Qv1lKlpATpe/WQ9aCZfl/xSb9d2Rgh1IyLSvNxZAXPZxruO6Xig==}
-
   '@rolldown/pluginutils@1.0.0-beta.53':
     resolution: {integrity: sha512-vENRlFU4YbrwVqNDZ7fLvy+JR1CRkyr01jhSiDpE1u6py3OMzQfztQU2jxykW3ALNxO4kSlqIDeYyD0Y9RcQeQ==}
 
@@ -2918,9 +2906,6 @@ packages:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
 
-  defu@6.1.4:
-    resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
-
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
@@ -3364,10 +3349,6 @@ packages:
   get-nonce@1.0.1:
     resolution: {integrity: sha512-FJhYRoDaiatfEkUK8HKlicmu/3SGFD51q3itKDGoSTysQJBnfOcxU5GxnhE1E6soB76MbT0MBtnKJuXyAx+96Q==}
     engines: {node: '>=6'}
-
-  get-port@7.1.0:
-    resolution: {integrity: sha512-QB9NKEeDg3xxVwCCwJQ9+xycaz6pBB6iQ76wiWMl1927n0Kir6alPiP+yuiICLLU4jpMe08dXfpebuQppFA2zw==}
-    engines: {node: '>=16'}
 
   get-proto@1.0.1:
     resolution: {integrity: sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==}
@@ -5516,24 +5497,6 @@ snapshots:
     optionalDependencies:
       workerd: 1.20251210.0
 
-  '@cloudflare/vite-plugin@1.17.1(vite@7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2))(workerd@1.20251210.0)(wrangler@4.54.0)':
-    dependencies:
-      '@cloudflare/unenv-preset': 2.7.13(unenv@2.0.0-rc.24)(workerd@1.20251210.0)
-      '@remix-run/node-fetch-server': 0.8.1
-      defu: 6.1.4
-      get-port: 7.1.0
-      miniflare: 4.20251210.0
-      picocolors: 1.1.1
-      tinyglobby: 0.2.15
-      unenv: 2.0.0-rc.24
-      vite: 7.3.0(@types/node@22.19.3)(jiti@2.6.1)(lightningcss@1.30.2)
-      wrangler: 4.54.0
-      ws: 8.18.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - workerd
-
   '@cloudflare/workerd-darwin-64@1.20251210.0':
     optional: true
 
@@ -6812,8 +6775,6 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@remix-run/node-fetch-server@0.8.1': {}
-
   '@rolldown/pluginutils@1.0.0-beta.53': {}
 
   '@rollup/rollup-android-arm-eabi@4.55.1':
@@ -7956,8 +7917,6 @@ snapshots:
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
 
-  defu@6.1.4: {}
-
   delayed-stream@1.0.0: {}
 
   delegates@1.0.0: {}
@@ -8645,8 +8604,6 @@ snapshots:
       math-intrinsics: 1.1.0
 
   get-nonce@1.0.1: {}
-
-  get-port@7.1.0: {}
 
   get-proto@1.0.1:
     dependencies:

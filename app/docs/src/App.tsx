@@ -66,7 +66,7 @@ function App() {
       <div className="flex w-full min-h-screen bg-background">
         <Sidebar className="border-r">
           <SidebarHeader className="p-4 border-b">
-            <h2 className="text-xl font-bold">@mavolo/electron-rpc</h2>
+            <h2 className="text-xl font-bold">@mavolostudio/electron-rpc</h2>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
