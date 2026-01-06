@@ -1,4 +1,4 @@
-export type Plugin<Ctx> = {
+export type Plugin = {
     name: string
     onRequest?: (opts: {
         key: string

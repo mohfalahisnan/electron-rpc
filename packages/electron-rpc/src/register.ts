@@ -15,7 +15,7 @@ export function registerIpcRouter<
     router: T,
     handlers: RouterHandlers<T, Ctx>,
     createContext: ContextFactory<Ctx>,
-    plugins: Plugin<Ctx>[] = []
+    plugins: Plugin[] = []
 ) {
     ipcMain.handle(channel, async (event, payload) => {
         const { key, input } = payload ?? {}
