@@ -22,6 +22,12 @@ A completely type-safe RPC (Remote Procedure Call) library for Electron applicat
 >
 > This design ensures that **no backend code is executed directly by the renderer**. The renderer simply requests a predefined procedure by name (string), and the main process decides how to handle it. This architecture maintains the security isolation model of Electron, preventing arbitrary code execution vulnerabilities common in "remote object" patterns.
 
+## Installation
+
+```bash
+pnpm add @mavolostudio/electron-rpc
+```
+
 ## Quick Start
 
 ### 1. Define your Router
