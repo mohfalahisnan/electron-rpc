@@ -115,4 +115,29 @@ describe('registerIpcRouter', () => {
             output: 'Hello Plugin'
         })
     })
+    it('should mask internal server errors', async () => {
+        const secretRouter = {
+            'secret': t.input(z.object({})).output(z.void()).use(async () => {
+                throw new Error("Database password check failed")
+            }),
+        }
+
+        const secretHandlers = {
+            secret: async () => { },
+        }
+
+        registerIpcRouter<typeof secretRouter, typeof mockContext>('test-channel-secret', secretRouter, secretHandlers, createContext)
+        const handle = ipcHandlers.get('test-channel-secret')
+
+        // Spy on console.error to avoid polluting output and verify logging
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
+
+        const result = await handle!({}, { key: 'secret', input: {} })
+
+        expect(result.error.code).toBe('INTERNAL')
+        expect(result.error.message).toBe('Internal server error')
+        expect(consoleSpy).toHaveBeenCalled()
+
+        consoleSpy.mockRestore()
+    })
 })

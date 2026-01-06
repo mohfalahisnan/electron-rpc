@@ -1,13 +1,11 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { exposeRpc } from '@mavolo/electron-rpc/expose'
 
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld("rpc", {
-      invoke: (payload: any) =>
-        ipcRenderer.invoke("rpc", payload),
-    })
+    exposeRpc({ whitelist: ['rpc'] })
   } catch (error) {
     console.error(error)
   }

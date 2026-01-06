@@ -57,7 +57,33 @@ export function registerIpcRouter<
                 return { error: { code: "INVALID_INPUT", issues: err.issues } }
             }
 
-            return { error: err }
+            // Check if it's a known IpcError-like object (simple duck typing or instance check if class existed)
+            // For now, assuming only ZodError is safe to return fully, or explicit safe errors.
+            // But looking at error.ts, IpcError is just a type alias for plain objects.
+            // We need a way to distinguish safe errors.
+
+            // Actually, let's look at `error.ts` content I just read.
+            // It has distinct codes. If the error thrown matches that shape, pass it through?
+            // Often thrown errors are instances of Error.
+
+            // Simplest safe approach:
+            // If it looks like one of our structured errors (has a valid 'code'), pass it.
+            // Otherwise, mask it.
+
+            const isSafeError = (e: any): boolean => {
+                return e && typeof e === 'object' && 'code' in e &&
+                    ['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_INPUT', 'INTERNAL'].includes(e.code)
+            }
+
+            if (isSafeError(err)) {
+                return { error: err }
+            }
+
+            // Log the actual error for the backend developer
+            console.error('[Electron RPC] Internal Error:', err)
+
+            // Return safe generic error to frontend
+            return { error: { code: "INTERNAL", message: "Internal server error" } }
         }
     })
 }
