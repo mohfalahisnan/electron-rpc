@@ -5,7 +5,8 @@
     "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mohfalahisnan/electron-rpc.git"
+        "url": "git+https://github.com/mohfalahisnan/electron-rpc.git",
+        "directory": "packages/electron-rpc"
     },
     "scripts": {
         "build": "turbo run build",
@@ -17,5 +18,8 @@
     "devDependencies": {
         "turbo": "^2.3.3"
     },
-    "packageManager": "pnpm@9.15.2"
+    "packageManager": "pnpm@9.15.2",
+    "publishConfig": {
+        "access": "public"
+    }
 }
