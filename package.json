@@ -1,6 +1,8 @@
 {
     "name": "electron-rpc",
     "private": true,
+    "description": "Type-safe IPC for Electron with Zod validation",
+    "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
     "scripts": {
         "build": "turbo run build",
         "dev": "turbo run dev",
