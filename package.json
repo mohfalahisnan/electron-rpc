@@ -5,7 +5,7 @@
     "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mohfalahisnan/electron-rpc.git",
+        "url": "git+https://github.com/mavolostudio/electron-rpc.git",
         "directory": "packages/electron-rpc"
     },
     "scripts": {
@@ -21,5 +21,8 @@
     "packageManager": "pnpm@9.15.2",
     "publishConfig": {
         "access": "public"
+    },
+    "bugs": {
+        "url": "https://github.com/mavolostudio/electron-rpc/issues"
     }
 }
