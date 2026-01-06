@@ -3,6 +3,10 @@
     "private": true,
     "description": "A completely type-safe RPC (Remote Procedure Call) library for Electron applications. It eliminates the need for manual IPC event handling and ensures that your main and renderer processes stay in sync with strict TypeScript validation.",
     "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mohfalahisnan/electron-rpc.git"
+    },
     "scripts": {
         "build": "turbo run build",
         "dev": "turbo run dev",

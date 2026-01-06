@@ -3,10 +3,18 @@
   "version": "1.0.0",
   "description": "A completely type-safe RPC (Remote Procedure Call) library for Electron applications. It eliminates the need for manual IPC event handling and ensures that your main and renderer processes stay in sync with strict TypeScript validation.",
   "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohfalahisnan/electron-rpc.git"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "test": "vitest run",
     "build": "tsup",
