@@ -1,5 +1,5 @@
 {
-  "name": "electron-rpc",
+  "name": "@mavolo/electron-rpc",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "electron": "^38.1.2",
     "zod": "^4.1.11"
   },
   "exports": {
@@ -18,5 +17,8 @@
   },
   "devDependencies": {
     "vitest": "^4.0.16"
+  },
+  "peerDependencies": {
+    "electron": "^38.1.2"
   }
 }
