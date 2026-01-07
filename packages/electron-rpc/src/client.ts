@@ -12,14 +12,20 @@ type InferOutput<T> = T extends { output: z.ZodTypeAny }
 
 export type Client<T extends RouterDef<any>> = {
     [K in keyof T]: (input: InferInput<T[K]>) => Promise<InferOutput<T[K]>>
+} & {
+    extend: <R>(fn: (client: Client<T>) => R) => R
 }
 
 export function createClient<T extends RouterDef<any>>(
     _channel: string,
     invoker: (payload: { key: keyof T; input: any }) => Promise<any>
 ): Client<T> {
-    return new Proxy({} as Client<T>, {
+    const client = new Proxy({} as Client<T>, {
         get(_, prop) {
+            if (prop === "extend") {
+                return (fn: (client: Client<T>) => any) => fn(client)
+            }
+
             return async (input: any) => {
                 const result = await invoker({
                     key: prop as keyof T,
@@ -34,4 +40,6 @@ export function createClient<T extends RouterDef<any>>(
             }
         },
     })
+
+    return client
 }
