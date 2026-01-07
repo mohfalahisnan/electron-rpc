@@ -21,7 +21,18 @@
     "build": "tsup",
     "dev": "tsup --watch"
   },
-  "keywords": [],
+  "keywords": [
+    "electron",
+    "rpc",
+    "ipc",
+    "typescript",
+    "type-safe",
+    "zod",
+    "trpc",
+    "tanstack-query",
+    "react-query",
+    "communication"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
