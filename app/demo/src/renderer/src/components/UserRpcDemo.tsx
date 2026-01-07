@@ -1,11 +1,10 @@
 
-import { useQuery } from "@tanstack/react-query"
 import { client } from "../client"
 
 export function UserRpcDemo() {
-    const { data, error, isLoading } = useQuery({
-        queryKey: ["user", "u1"],
-        queryFn: () => client.getById({ id: "123e4567-e89b-12d3-a456-426614174000" }),
+    console.log("Query Key:", client.getById.getQueryKey({ id: "123" }))
+    const { data, error, isLoading } = client.getById.useQuery({
+        id: "123e4567-e89b-12d3-a456-426614174000",
     })
 
     if (isLoading) return <div>Loading user...</div>
