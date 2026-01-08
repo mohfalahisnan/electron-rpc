@@ -8,105 +8,107 @@ import {
     useMutation,
     useQuery,
 } from "@tanstack/react-query"
-import type { Client } from "./client"
-import type { RouterDef } from "./router"
+import type { RemoteClient } from "./client"
 
-type InferInput<T> = T extends { input: any }
-    ? T["input"] extends { _output: infer O }
-    ? O
-    : never
-    : never
+type Promisify<T> = T extends Promise<any> ? T : Promise<T>
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T
 
-type InferOutput<T> = T extends { output: any }
-    ? T["output"] extends { _output: infer O }
-    ? O
-    : never
-    : never
-
-type TanstackExtension<T extends RouterDef<any>> = {
-    queryClient?: QueryClient
-} & {
-    [K in keyof T]: {
+export type TanstackExtension<T> = {
+    [K in keyof T]: T[K] extends (...args: infer Args) => infer R
+    ? T[K] & {
         useQuery: (
-            input: InferInput<T[K]>,
+            input: Args extends [infer A, ...any[]] ? A : void,
             opts?: UseQueryOptions<
-                InferOutput<T[K]>,
+                UnwrapPromise<R>,
                 DefaultError,
-                InferOutput<T[K]>,
-                [string, InferInput<T[K]>]
+                UnwrapPromise<R>,
+                [string[], Args extends [infer A, ...any[]] ? A : void]
             >
-        ) => UseQueryResult<InferOutput<T[K]>, DefaultError>
+        ) => UseQueryResult<UnwrapPromise<R>, DefaultError>
         useMutation: (
             opts?: UseMutationOptions<
-                InferOutput<T[K]>,
+                UnwrapPromise<R>,
                 DefaultError,
-                InferInput<T[K]>
+                Args extends [infer A, ...any[]] ? A : void
             >
-        ) => UseMutationResult<InferOutput<T[K]>, DefaultError, InferInput<T[K]>>
-        getQueryKey: (input: InferInput<T[K]>) => [string, InferInput<T[K]>]
+        ) => UseMutationResult<
+            UnwrapPromise<R>,
+            DefaultError,
+            Args extends [infer A, ...any[]] ? A : void
+        >
+        getQueryKey: (
+            input: Args extends [infer A, ...any[]] ? A : void
+        ) => [string[], Args extends [infer A, ...any[]] ? A : void]
     }
+    : T[K] extends object
+    ? TanstackExtension<T[K]>
+    : T[K]
 }
 
-type TanstackConfig = {
+export function tanstack<T>(
+    client: RemoteClient<T>,
     queryClient?: QueryClient
-}
-
-export function tanstack<T extends RouterDef<any>>(
-    client: Client<T>
-): TanstackExtension<T>
-export function tanstack(
-    config: TanstackConfig
-): <T extends RouterDef<any>>(client: Client<T>) => TanstackExtension<T>
-export function tanstack<T extends RouterDef<any>>(
-    arg: Client<T> | TanstackConfig
-): any {
-    const createExtension = (
-        client: Client<T>,
-        config?: TanstackConfig
-    ): TanstackExtension<T> => {
-        return new Proxy(
-            {
-                queryClient: config?.queryClient,
-            },
-            {
-                get(target, key: string) {
-                    if (key === "queryClient") return target.queryClient
-
-                    return {
-                        useQuery: (
-                            input: any,
-                            opts?: UseQueryOptions<any, DefaultError, any, any>
-                        ) => {
+): TanstackExtension<T> {
+    const createRecursiveProxy = (path: string[] = []): any => {
+        return new Proxy(() => { }, {
+            get(_, prop) {
+                if (typeof prop === "string") {
+                    if (prop === "useQuery") {
+                        return (input: any, opts: any) => {
+                            const queryKey = [path, input]
+                            const queryFn = () => {
+                                let current: any = client
+                                for (const segment of path) {
+                                    current = current[segment]
+                                }
+                                return current(input)
+                            }
                             return useQuery(
                                 {
                                     ...opts,
-                                    queryKey: [key, input],
-                                    queryFn: () => (client as any)[key](input),
+                                    queryKey,
+                                    queryFn,
                                 },
-                                config?.queryClient
+                                queryClient
                             )
-                        },
-                        useMutation: (
-                            opts?: UseMutationOptions<any, DefaultError, any>
-                        ) => {
+                        }
+                    }
+
+                    if (prop === "useMutation") {
+                        return (opts: any) => {
+                            const mutationFn = (input: any) => {
+                                let current: any = client
+                                for (const segment of path) {
+                                    current = current[segment]
+                                }
+                                return current(input)
+                            }
                             return useMutation(
                                 {
                                     ...opts,
-                                    mutationFn: (input) => (client as any)[key](input),
+                                    mutationFn,
                                 },
-                                config?.queryClient
+                                queryClient
                             )
-                        },
-                        getQueryKey: (input: any) => [key, input],
+                        }
                     }
-                },
-            }
-        ) as any
+
+                    if (prop === "getQueryKey") {
+                        return (input: any) => [path, input]
+                    }
+
+                    return createRecursiveProxy([...path, prop])
+                }
+            },
+            apply(_, __, args) {
+                let current: any = client
+                for (const segment of path) {
+                    current = current[segment]
+                }
+                return current(...args)
+            },
+        })
     }
 
-    if ("extend" in arg && typeof (arg as any).extend === "function") {
-        return createExtension(arg as Client<T>)
-    }
-
-    return (client: Client<T>) => createExtension(client, arg as TanstackConfig)
+    return createRecursiveProxy()
 }
