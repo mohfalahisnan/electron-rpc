@@ -1,25 +1,18 @@
 import { z } from "zod"
-import { createProcedure } from "@mavolostudio/electron-rpc"
 
-export type AppContext = {
-    user?: { id: string; role: "admin" | "user" }
-    db: {
-        user: {
-            findById(id: string): Promise<{ id: string; email: string }>
-        }
-    }
+// Mock DB
+const db = {
+    user: {
+        findById: async (id: string) => ({ id, email: `user-${id}@example.com` }),
+    },
 }
-
-const procedure = createProcedure<AppContext>()
 
 export const userRouter = {
-    getById: procedure
-        .input(z.object({ id: z.string().uuid() }))
-        .output(
-            z.object({
-                id: z.string(),
-                email: z.string().email(),
-            })
-        )
-        .use(),
+    getById: async (input: { id: string }) => {
+        const schema = z.object({ id: z.string() })
+        const { id } = schema.parse(input)
+        return db.user.findById(id)
+    },
 }
+
+export type AppApi = typeof userRouter

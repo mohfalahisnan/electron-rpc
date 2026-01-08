@@ -1,15 +1,4 @@
-
-import { registerIpcRouter } from "@mavolostudio/electron-rpc"
-import { createContext } from "./context"
+import { registerIpcMain } from "@mavolostudio/electron-rpc"
 import { userRouter } from "./user.rpc"
 
-registerIpcRouter(
-    "rpc",
-    userRouter,
-    {
-        async getById(ctx, input) {
-            return ctx.db.user.findById(input.id)
-        },
-    },
-    createContext
-)
+registerIpcMain("rpc", userRouter)
