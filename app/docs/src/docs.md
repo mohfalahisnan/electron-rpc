@@ -114,6 +114,80 @@ const response = await client.echo({ message: "Hello" });
 console.log(response); // "Echo: Hello"
 ```
 
+## Advanced Usage
+
+### Extensions
+
+The client can be extended with additional functionality using the `.extend()` method. This is useful for adding integrations with state management libraries, logging, or custom helpers.
+
+```typescript
+const extendedClient = client.extend((c) => ({
+    ...c,
+    log: (msg: string) => console.log(msg)
+}))
+
+extendedClient.log("Hello")
+```
+
+### TanStack Query Integration
+
+This package comes with a built-in extension for [TanStack Query](https://tanstack.com/query) (React Query). It automatically generates `useQuery` and `useMutation` hooks for your procedures.
+
+#### Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install @tanstack/react-query
+   ```
+
+2. Extend your client:
+
+   ```typescript
+   // src/renderer/client.ts
+   import { createClient } from "@mavolostudio/electron-rpc/client"
+   import { tanstack } from "@mavolostudio/electron-rpc/tanstack"
+   import { QueryClient } from "@tanstack/react-query"
+   
+   const queryClient = new QueryClient()
+
+   export const client = createClient<AppRouter>("rpc-channel", (payload) => 
+       window.ipc.invoke("rpc-channel", payload)
+   ).extend(tanstack({ queryClient }))
+   ```
+
+#### Usage
+
+Now you can use the generated hooks in your components. The hooks are fully type-safe!
+
+```typescript
+function UserProfile({ id }: { id: string }) {
+    // Automatic type inference for input and output
+    const { data, isLoading, error } = client.getUser.useQuery({ id })
+    
+    // Access the query key for invalidation or manual updates
+    // Key format: ['getUser', { id: "..." }]
+    const queryKey = client.getUser.getQueryKey({ id })
+
+    if (isLoading) return <div>Loading...</div>
+    if (error) return <div>Error: {error.message}</div>
+
+    return <div>User: {data.name}</div>
+}
+```
+
+For mutations:
+
+```typescript
+const mutation = client.updateUser.useMutation({
+    onSuccess: () => {
+        console.log("User updated!")
+    }
+})
+
+mutation.mutate({ id: "123", name: "Bob" })
+```
+
 ## API Reference
 
 ### `createProcedure()`
