@@ -1,10 +1,10 @@
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from '@/components/ui/sidebar';
 import React, { type ComponentPropsWithoutRef, type ReactElement, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSlug from 'rehype-slug';
-import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import docsContent from './docs.md?raw';
 import './App.css';
+import docsContent from './docs.md?raw';
 
 const CustomAlert = ({ children, ...props }: ComponentPropsWithoutRef<'blockquote'>) => {
   const content = React.Children.toArray(children);
@@ -66,7 +66,7 @@ function App() {
       <div className="flex w-full min-h-screen bg-background">
         <Sidebar className="border-r">
           <SidebarHeader className="p-4 border-b">
-            <h2 className="text-xl font-bold">@mavolostudio/electron-rpc</h2>
+            <h2 className="text-xl font-bold">electron-rpc</h2>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
