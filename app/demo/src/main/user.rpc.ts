@@ -29,6 +29,7 @@ export const userRouter = {
   getById: t
     .input(z.object({ id: z.string() }))
     .output(z.object({ id: z.string(), email: z.string() }))
+    .use(loggingMiddleware)
     .query(async (ctx, input) => {
       console.log('[RPC] getById called with:', input)
       return ctx.db.user.findById(input.id)
@@ -38,6 +39,7 @@ export const userRouter = {
   deleteUser: t
     .input(z.object({ id: z.string() }))
     .output(z.object({ success: z.boolean() }))
+    .use(loggingMiddleware, requireAdmin)
     .mutation(async (_ctx, input) => {
       console.log(`[Admin] Deleting user ${input.id}`)
       return { success: true }
@@ -45,11 +47,3 @@ export const userRouter = {
 }
 
 export type AppRouter = typeof userRouter
-
-/**
- * Client-side API type (callable functions without context)
- */
-export type AppApi = {
-  getById: (input: { id: string }) => Promise<{ id: string; email: string }>
-  deleteUser: (input: { id: string }) => Promise<{ success: boolean }>
-}

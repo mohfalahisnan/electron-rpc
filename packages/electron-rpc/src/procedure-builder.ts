@@ -73,9 +73,12 @@ export class ProcedureBuilder<
   /**
    * Add middleware(s) to this procedure and finalize it
    */
+  /**
+   * Add middleware(s) to this procedure
+   */
   use(
     ...middlewares: Middleware<TContext, TInput>[]
-  ): Procedure<TContext, TInput, TOutput> {
+  ): ProcedureBuilder<TContext, TInput, TOutput> {
     if (!this._input) {
       throw new Error("Input schema must be defined before calling use()");
     }
@@ -83,19 +86,39 @@ export class ProcedureBuilder<
       throw new Error("Output schema must be defined before calling use()");
     }
 
+    const builder = new ProcedureBuilder<TContext, TInput, TOutput>();
+    builder._input = this._input;
+    builder._output = this._output;
+    builder._middlewares = [...this._middlewares, ...middlewares];
+    return builder;
+  }
+
+  /**
+   * Finalize the procedure definition
+   */
+  build(): Procedure<TContext, TInput, TOutput> {
+    if (!this._input) {
+      throw new Error("Input schema must be defined before calling build()");
+    }
+    if (!this._output) {
+      throw new Error("Output schema must be defined before calling build()");
+    }
+
     return {
       input: this._input,
       output: this._output,
-      middlewares: [...this._middlewares, ...middlewares],
+      middlewares: this._middlewares,
     };
   }
 
   /**
    * Define a query procedure with inline handler (like tRPC)
    */
-  query(
-    handler: Handler<TContext, TInput, TOutput>,
-  ): Procedure<TContext, TInput, TOutput> & {
+  query(handler: Handler<TContext, TInput, TOutput>): Procedure<
+    TContext,
+    TInput,
+    TOutput
+  > & {
     handler: Handler<TContext, TInput, TOutput>;
   } {
     if (!this._input) {
@@ -117,9 +140,11 @@ export class ProcedureBuilder<
    * Define a mutation procedure with inline handler (like tRPC)
    * Alias for query() - both work the same way
    */
-  mutation(
-    handler: Handler<TContext, TInput, TOutput>,
-  ): Procedure<TContext, TInput, TOutput> & {
+  mutation(handler: Handler<TContext, TInput, TOutput>): Procedure<
+    TContext,
+    TInput,
+    TOutput
+  > & {
     handler: Handler<TContext, TInput, TOutput>;
   } {
     return this.query(handler);

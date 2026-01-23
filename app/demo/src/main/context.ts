@@ -1,3 +1,5 @@
+import type { IpcMainInvokeEvent } from 'electron'
+
 /**
  * Application context available to all RPC procedures
  */
@@ -13,7 +15,8 @@ export type AppContext = {
 /**
  * Create context for each RPC request
  */
-export async function createContext(): Promise<AppContext> {
+export async function createContext(_event: IpcMainInvokeEvent): Promise<AppContext> {
+  // Access event.sender if needed for more info about the caller
   return {
     user: { id: 'u1', role: 'admin' as const }, // from session
     db: {

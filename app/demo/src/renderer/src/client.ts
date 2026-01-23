@@ -1,13 +1,11 @@
 import { createProxy } from '@mavolostudio/electron-rpc/client'
 import { tanstackProcedures } from '@mavolostudio/electron-rpc/tanstack-procedures'
-import type { AppApi } from '../../main/user.rpc'
+import type { AppRouter } from '../../main/user.rpc'
 import { queryClient } from './query-client'
 
 // Create proxy that uses key-based invocation for registerIpcRouter
-const proxy = createProxy<AppApi>((path, args) => {
-  const key = path[0] // First path segment is the procedure key
-  const input = args[0] // First argument is the input
-  return window.rpc.invoke('rpc', { key, input })
+const proxy = createProxy<AppRouter>((path, args) => {
+  return window.rpc.invoke('rpc', { key: path[0], input: args[0] })
 })
 
 // Export direct RPC client

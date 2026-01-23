@@ -4,7 +4,11 @@ import { createProcedure } from "../src/procedure-builder";
 
 describe("createProcedure", () => {
   it("should create a basic procedure with input and output", () => {
-    const proc = createProcedure().input(z.string()).output(z.number()).use();
+    const proc = createProcedure()
+      .input(z.string())
+      .output(z.number())
+      .use()
+      .build();
 
     expect(proc).toBeDefined();
     expect(proc.input).toBeInstanceOf(z.ZodString);
@@ -19,7 +23,8 @@ describe("createProcedure", () => {
     const proc = createProcedure()
       .input(z.void())
       .output(z.void())
-      .use(middleware1, middleware2);
+      .use(middleware1, middleware2)
+      .build();
 
     expect(proc.middlewares).toHaveLength(2);
     expect(proc.middlewares[0]).toBe(middleware1);
@@ -33,10 +38,26 @@ describe("createProcedure", () => {
     const proc = createProcedure()
       .input(inputSchema)
       .output(outputSchema)
-      .use();
+      .use()
+      .build();
 
     // Verify schemas are correctly assigned
     expect(proc.input).toBe(inputSchema);
     expect(proc.output).toBe(outputSchema);
+  });
+
+  it("should allow chaining use() and query()", () => {
+    const middleware = async ({ ctx, input }: any, next: any) => next();
+    const handler = async (ctx: any, input: any) => 123;
+
+    const proc = createProcedure()
+      .input(z.string())
+      .output(z.number())
+      .use(middleware)
+      .query(handler);
+
+    expect(proc.middlewares).toHaveLength(1);
+    expect(proc.middlewares[0]).toBe(middleware);
+    expect(proc.handler).toBe(handler);
   });
 });

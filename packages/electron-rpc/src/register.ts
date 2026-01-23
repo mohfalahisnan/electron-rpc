@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+import { ipcMain, type IpcMainInvokeEvent } from "electron";
 import { ZodError } from "zod";
 import type { IpcError } from "./error";
 import { executeMiddlewares } from "./execute";
@@ -65,13 +65,17 @@ export function registerIpcRouter<
             : never
         >;
       }
-    | (() => Promise<TContext> | TContext),
-  createContextOrPlugins?: (() => Promise<TContext> | TContext) | Plugin[],
+    | ((event: IpcMainInvokeEvent) => Promise<TContext> | TContext),
+  createContextOrPlugins?:
+    | ((event: IpcMainInvokeEvent) => Promise<TContext> | TContext)
+    | Plugin[],
   plugins?: Plugin[],
 ) {
   // Determine the actual parameters based on what was passed
   let handlers: any;
-  let createContext: () => Promise<TContext> | TContext;
+  let createContext: (
+    event: IpcMainInvokeEvent,
+  ) => Promise<TContext> | TContext;
   let pluginList: Plugin[];
 
   if (typeof handlersOrContext === "function") {
@@ -82,9 +86,9 @@ export function registerIpcRouter<
   } else {
     // handlersOrContext is handlers object
     handlers = handlersOrContext;
-    createContext = createContextOrPlugins as () =>
-      | Promise<TContext>
-      | TContext;
+    createContext = createContextOrPlugins as (
+      event: IpcMainInvokeEvent,
+    ) => Promise<TContext> | TContext;
     pluginList = plugins || [];
   }
 
@@ -102,7 +106,7 @@ export function registerIpcRouter<
       }
 
       // Create context
-      const ctx = await createContext();
+      const ctx = await createContext(event);
 
       // Validate input
       let validatedInput: any;

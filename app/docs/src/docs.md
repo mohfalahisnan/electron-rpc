@@ -29,181 +29,159 @@ pnpm add @mavolostudio/electron-rpc
 
 ## Usage
 
-### 1. Define your API (Shared/Main)
+### 1. Define Context (Shared/Main)
 
-Define your API implementation as a plain object or class in the main process.
+Define the context that will be available to all procedures.
 
 ```typescript
-// src/main/api.ts
-const db = {
-    users: {
-        find: (id: string) => ({ id, name: "Alice" })
-    }
-}
+// src/main/context.ts
+import { IpcMainInvokeEvent } from 'electron';
 
-export const api = {
-    // Nested routes supported
-    users: {
-        get: async (id: string) => {
-            return db.users.find(id)
-        },
-        create: async (name: string) => {
-            return { id: "123", name }
-        }
-    },
-    // Top-level methods supported
-    version: async () => "1.0.0"
-}
+export type AppContext = {
+  user: { id: string; role: 'admin' | 'user' };
+};
 
-// Export the type for the client
-export type AppApi = typeof api
+export async function createContext(event: IpcMainInvokeEvent): Promise<AppContext> {
+  return {
+    user: { id: 'user-1', role: 'admin' }, // Load from session/token
+  };
+}
 ```
 
-### 2. Register Handler (Main Process)
+### 2. Define Procedures (Shared/Main)
 
-Register the API object to handle IPC requests.
+Use the `ProcedureBuilder` to define your API with validation and middleware.
+
+```typescript
+// src/main/router.ts
+import { createProcedure, z } from '@mavolostudio/electron-rpc';
+import type { AppContext } from './context';
+
+const t = createProcedure<AppContext>();
+
+// Middleware example
+const logger = t.use(async ({ input }, next) => {
+  console.log('Request:', input);
+  return next();
+});
+
+export const router = {
+  greeting: t
+    .input(z.object({ name: z.string() }))
+    .output(z.string())
+    .use(async ({ ctx }, next) => {
+      // Access context before handler
+      console.log('User:', ctx.user.id);
+      return next();
+    })
+    .query(async (ctx, input) => {
+      return `Hello, ${input.name}!`;
+    }),
+    
+  deleteData: t
+    .input(z.object({ id: z.string() }))
+    .output(z.boolean())
+    .use(async ({ ctx }, next) => {
+      if (ctx.user.role !== 'admin') throw new Error('Unauthorized');
+      return next();
+    })
+    .mutation(async (ctx, input) => {
+      // Perform dangerous action
+      return true;
+    })
+};
+
+export type AppRouter = typeof router;
+```
+
+### 3. Register Router (Main Process)
+
+Register the router with the IPC channel.
 
 ```typescript
 // src/main/ipc.ts
-import { registerIpcMain } from "@mavolostudio/electron-rpc"
-import { api } from "./api"
+import { registerIpcRouter } from '@mavolostudio/electron-rpc';
+import { router } from './router';
+import { createContext } from './context';
 
 // Listen on "rpc" channel
-registerIpcMain("rpc", api)
-```
-
-### 3. Expose Bridge (Preload Script)
-
-Expose the RPC bridge to the renderer process safely.
-
-```typescript
-// src/preload/index.ts
-import { exposeRpc } from "@mavolostudio/electron-rpc/expose"
-
-exposeRpc({
-  name: "rpc",      // Window object key (window.rpc)
-  whitelist: ["rpc"] // Allow only this channel
-})
+registerIpcRouter('rpc', router, createContext);
 ```
 
 ### 4. Create Client (Renderer Process)
 
-Create the type-safe client in your frontend.
+#### Option A: TanStack Query (Recommended)
+
+Wrap the proxy with our TanStack Query adapter for auto-generated hooks.
 
 ```typescript
 // src/renderer/client.ts
-import { createProxy } from "@mavolostudio/electron-rpc/client"
-import type { AppApi } from "../../main/api"
+import { createProxy } from '@mavolostudio/electron-rpc/client';
+import { tanstackProcedures } from '@mavolostudio/electron-rpc/tanstack-procedures';
+import { QueryClient } from '@tanstack/react-query';
+import type { AppRouter } from '../../main/router';
 
-// Create the proxy
-export const client = createProxy<AppApi>((path, args) => 
-    // Send request to main process
-    window.rpc.invoke("rpc", { path, args })
-)
+const queryClient = new QueryClient();
+
+// Create base proxy
+const rpc = createProxy<AppRouter>((path, args) => 
+  window.rpc.invoke('rpc', { key: path[0], input: args[0] })
+);
+
+// Create TanStack wrapper
+export const client = tanstackProcedures(rpc, queryClient);
 ```
 
-### 5. Call API
+**Usage in React:**
 
-Use the client naturally. Types are inferred automatically!
+```tsx
+function App() {
+  const { data, isLoading } = client.greeting.useQuery({ name: 'Alice' });
+  const mutation = client.deleteData.useMutation();
 
-```typescript
-// src/renderer/App.tsx
-import { client } from "./client"
+  if (isLoading) return <div>Loading...</div>;
 
-async function loadUser() {
-    // Looks like valid local function call!
-    const user = await client.users.get("123")
-    console.log(user.name) // Typed as string
-    
-    const ver = await client.version()
+  return (
+    <button onClick={() => mutation.mutate({ id: '123' })}>
+      {data}
+    </button>
+  );
 }
 ```
 
-## Integration
+#### Option B: Direct RPC
 
-### TanStack Query (React Query)
-
-We provide a built-in adapter for TanStack Query that adds `useQuery`, `useMutation`, and `getQueryKey` methods to every function in your API.
-
-#### Setup
+You can also use the RPC client directly.
 
 ```typescript
 // src/renderer/client.ts
-import { createProxy } from "@mavolostudio/electron-rpc/client"
-import { tanstack } from "@mavolostudio/electron-rpc/tanstack"
-import { QueryClient } from "@tanstack/react-query"
-import type { AppApi } from "../../main/api"
+import { createProxy } from '@mavolostudio/electron-rpc/client';
+import type { AppRouter } from '../../main/router';
 
-const queryClient = new QueryClient()
+export const rpc = createProxy<AppRouter>((path, args) => 
+  window.rpc.invoke('rpc', { key: path[0], input: args[0] })
+);
 
-const baseClient = createProxy<AppApi>((path, args) => 
-    window.rpc.invoke("rpc", { path, args })
-)
-
-// Extend with TanStack capabilities
-export const client = tanstack(baseClient, queryClient)
-```
-
-#### Usage
-
-You can now use `useQuery` hooks directly on your API methods.
-
-```typescript
-function UserProfile({ id }: { id: string }) {
-    // 1. Data Fetching
-    const { data, isLoading } = client.users.get.useQuery(id)
-
-    // 2. Mutations
-    const mutation = client.users.create.useMutation({
-        onSuccess: () => {
-           // Invalidate queries using getQueryKey
-           const key = client.users.get.getQueryKey(id)
-           queryClient.invalidateQueries({ queryKey: key })
-        }
-    })
-
-    if (isLoading) return <div>Loading...</div>
-
-    return (
-        <div onClick={() => mutation.mutate("Bob")}>
-            User: {data?.name}
-        </div>
-    )
-}
-```
-
-The extension preserves the ability to call the function directly if needed:
-
-```typescript
-// Still works!
-const user = await client.users.get("123")
+// Usage
+const result = await rpc.greeting({ name: 'Bob' });
 ```
 
 ## API Reference
 
-### `registerIpcMain(channel, api)`
+### `createProcedure<Context>()`
+Creates a builder for defining procedures with input/output validation and middleware.
 
-Registers an API object to handle requests on a specific IPC channel.
+### `registerIpcRouter(channel, router, createContext, plugins?)`
+Registers a router object to handle IPC requests.
+- `channel`: IPC channel name.
+- `router`: Object containing procedures.
+- `createContext`: Function generating context for each request.
+- `plugins`: Optional array of lifecycle plugins.
 
-- `channel`: string - The IPC channel name.
-- `api`: object - The implementation object.
-
-### `createProxy<ApiType>(invoker)`
-
-Creates a recursive proxy client.
-
-- `invoker`: `(path: string[], args: any[]) => Promise<any>` - Function that handles transporting the call to the backend.
+### `tanstackProcedures(client, queryClient)`
+Wraps the RPC client to provide `useQuery`, `useMutation`, and `getQueryKey`.
 
 ### `exposeRpc(config)`
-
 Exposes the secure bridge in the preload script.
-
-- `config.name`: string - Name of the global variable (default "ipc").
-- `config.whitelist`: string[] - List of allowed IPC channels.
-
-### `tanstack(client, queryClient?)`
-
-Wraps a proxy client to add TanStack Query hooks.
-
-- `client`: The proxy client.
-- `queryClient`: Optional QueryClient instance (for internal usages).
+- `config.name`: Global variable name (e.g., "rpc").
+- `config.whitelist`: Allowed channels.

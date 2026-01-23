@@ -30,18 +30,21 @@ describe("registerIpcRouter", () => {
     getUser: t
       .input(z.object({}))
       .output(z.object({ name: z.string() }))
-      .use(),
+      .use()
+      .build(),
     greet: t
       .input(z.object({ name: z.string() }))
       .output(z.string())
-      .use(),
+      .use()
+      .build(),
     adminOnly: t
       .input(z.object({}))
       .output(z.void())
       .use(async ({ ctx }, next) => {
         if (ctx.user !== "admin") throw error.forbidden();
         return next();
-      }),
+      })
+      .build(),
   };
 
   const handlers = {
@@ -171,7 +174,8 @@ describe("registerIpcRouter", () => {
         .output(z.void())
         .use(async () => {
           throw new Error("Database password check failed");
-        }),
+        })
+        .build(),
     };
 
     const secretHandlers = {
