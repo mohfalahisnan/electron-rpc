@@ -1,6 +1,6 @@
 {
   "name": "@mavolostudio/electron-rpc",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A completely type-safe RPC (Remote Procedure Call) library for Electron applications. It eliminates the need for manual IPC event handling and ensures that your main and renderer processes stay in sync with strict TypeScript validation.",
   "homepage": "https://electron-rpc-docs.moh-falah-isnan.workers.dev/",
   "repository": {
@@ -58,6 +58,11 @@
       "types": "./dist/tanstack.d.ts",
       "import": "./dist/tanstack.js",
       "require": "./dist/tanstack.cjs"
+    },
+    "./tanstack-procedures": {
+      "types": "./dist/tanstack-procedures.d.ts",
+      "import": "./dist/tanstack-procedures.js",
+      "require": "./dist/tanstack-procedures.cjs"
     }
   },
   "devDependencies": {

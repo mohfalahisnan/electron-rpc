@@ -10,9 +10,6 @@ A type-safe RPC (Remote Procedure Call) library for Electron applications. It si
 >
 > This design ensures that **no backend code is executed directly by the renderer**. The renderer simply requests a predefined procedure by name (string), and the main process decides how to handle it.
 
-> **⚠️ WARNING: EARLY DEVELOPMENT**
->
-> This package is currently in early development. API signatures and features may change without notice.
 
 ## Features
 
