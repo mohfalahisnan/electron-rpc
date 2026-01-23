@@ -22,34 +22,26 @@ const requireAdmin: Middleware<AppContext, any> = async ({ ctx }, next) => {
 }
 
 /**
- * User router with procedure definitions
+ * User router with inline handlers (like tRPC)
  */
 export const userRouter = {
-  // Basic procedure with logging
+  // Query with inline handler
   getById: t
     .input(z.object({ id: z.string() }))
     .output(z.object({ id: z.string(), email: z.string() }))
-    .use(loggingMiddleware),
+    .query(async (ctx, input) => {
+      console.log('[RPC] getById called with:', input)
+      return ctx.db.user.findById(input.id)
+    }),
 
-  // Admin-only procedure
+  // Mutation with inline handler and middleware
   deleteUser: t
     .input(z.object({ id: z.string() }))
     .output(z.object({ success: z.boolean() }))
-    .use(loggingMiddleware, requireAdmin)
-}
-
-/**
- * Handler implementations
- */
-export const userHandlers = {
-  getById: async (ctx: AppContext, input: { id: string }) => {
-    return ctx.db.user.findById(input.id)
-  },
-
-  deleteUser: async (_ctx: AppContext, input: { id: string }) => {
-    console.log(`[Admin] Deleting user ${input.id}`)
-    return { success: true }
-  }
+    .mutation(async (_ctx, input) => {
+      console.log(`[Admin] Deleting user ${input.id}`)
+      return { success: true }
+    })
 }
 
 export type AppRouter = typeof userRouter

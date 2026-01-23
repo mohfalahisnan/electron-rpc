@@ -42,8 +42,8 @@ export function registerIpcMain<T>(channel: string, api: T) {
  *
  * @param channel - IPC channel name
  * @param router - Object mapping procedure names to procedure definitions
- * @param handlers - Object mapping procedure names to handler implementations
- * @param createContext - Function to create context for each request
+ * @param handlersOrContext - Either handlers object or context creation function (if using inline handlers)
+ * @param createContextOrPlugins - Context creation function or plugins array
  * @param plugins - Optional array of plugins for lifecycle hooks
  */
 export function registerIpcRouter<
@@ -52,19 +52,42 @@ export function registerIpcRouter<
 >(
   channel: string,
   router: TRouter,
-  handlers: {
-    [K in keyof TRouter]: (
-      ctx: TContext,
-      input: TRouter[K] extends Procedure<any, infer TInput, any>
-        ? TInput
-        : never,
-    ) => Promise<
-      TRouter[K] extends Procedure<any, any, infer TOutput> ? TOutput : never
-    >;
-  },
-  createContext: () => Promise<TContext> | TContext,
-  plugins: Plugin[] = [],
+  handlersOrContext:
+    | {
+        [K in keyof TRouter]?: (
+          ctx: TContext,
+          input: TRouter[K] extends Procedure<any, infer TInput, any>
+            ? TInput
+            : never,
+        ) => Promise<
+          TRouter[K] extends Procedure<any, any, infer TOutput>
+            ? TOutput
+            : never
+        >;
+      }
+    | (() => Promise<TContext> | TContext),
+  createContextOrPlugins?: (() => Promise<TContext> | TContext) | Plugin[],
+  plugins?: Plugin[],
 ) {
+  // Determine the actual parameters based on what was passed
+  let handlers: any;
+  let createContext: () => Promise<TContext> | TContext;
+  let pluginList: Plugin[];
+
+  if (typeof handlersOrContext === "function") {
+    // handlersOrContext is createContext, no separate handlers
+    handlers = {};
+    createContext = handlersOrContext;
+    pluginList = (createContextOrPlugins as Plugin[]) || [];
+  } else {
+    // handlersOrContext is handlers object
+    handlers = handlersOrContext;
+    createContext = createContextOrPlugins as () =>
+      | Promise<TContext>
+      | TContext;
+    pluginList = plugins || [];
+  }
+
   ipcMain.handle(channel, async (event, { key, input }) => {
     try {
       // Check if the key exists in the router
@@ -74,7 +97,7 @@ export function registerIpcRouter<
       }
 
       // Call plugin onRequest hooks
-      for (const plugin of plugins) {
+      for (const plugin of pluginList) {
         await plugin.onRequest?.({ key, input });
       }
 
@@ -96,8 +119,8 @@ export function registerIpcRouter<
         throw err;
       }
 
-      // Get the handler
-      const handler = handlers[key];
+      // Get the handler - either from inline handler or handlers object
+      const handler = procedure.handler || handlers[key];
       if (!handler) {
         throw new Error(`Handler for "${key}" not found`);
       }
@@ -114,7 +137,7 @@ export function registerIpcRouter<
       const validatedOutput = procedure.output.parse(result);
 
       // Call plugin onResponse hooks
-      for (const plugin of plugins) {
+      for (const plugin of pluginList) {
         await plugin.onResponse?.({
           key,
           input: validatedInput,
@@ -125,7 +148,7 @@ export function registerIpcRouter<
       return { data: validatedOutput };
     } catch (err: any) {
       // Call plugin onError hooks
-      for (const plugin of plugins) {
+      for (const plugin of pluginList) {
         await plugin.onError?.({ key, error: err });
       }
 
