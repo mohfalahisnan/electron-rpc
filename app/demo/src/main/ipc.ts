@@ -1,4 +1,6 @@
-import { registerIpcMain } from "@mavolostudio/electron-rpc"
-import { userRouter } from "./user.rpc"
+import { registerIpcRouter } from '@mavolostudio/electron-rpc'
+import { createContext } from './context'
+import { loggingPlugin, metricsPlugin } from './plugins'
+import { userHandlers, userRouter } from './user.rpc'
 
-registerIpcMain("rpc", userRouter)
+registerIpcRouter('rpc', userRouter, userHandlers, createContext, [loggingPlugin, metricsPlugin])

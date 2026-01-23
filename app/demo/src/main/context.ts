@@ -1,16 +1,27 @@
-import type { IpcMainInvokeEvent } from "electron"
-
-export async function createContext(
-    _event: IpcMainInvokeEvent
-) {
-    return {
-        user: { id: "u1", role: "admin" as const }, // from session
-        db: {
-            user: {
-                async findById(id: string) {
-                    return { id, email: "admin@example.com" }
-                },
-            },
-        },
+/**
+ * Application context available to all RPC procedures
+ */
+export type AppContext = {
+  user: { id: string; role: 'admin' | 'user' }
+  db: {
+    user: {
+      findById(id: string): Promise<{ id: string; email: string }>
     }
+  }
+}
+
+/**
+ * Create context for each RPC request
+ */
+export async function createContext(): Promise<AppContext> {
+  return {
+    user: { id: 'u1', role: 'admin' as const }, // from session
+    db: {
+      user: {
+        async findById(id: string) {
+          return { id, email: 'admin@example.com' }
+        }
+      }
+    }
+  }
 }
