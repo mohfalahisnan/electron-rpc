@@ -13,40 +13,76 @@ import type { RemoteClient } from "./client";
 type Promisify<T> = T extends Promise<any> ? T : Promise<T>;
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 
+import type { ZodType } from "zod";
+
+// ... (existing imports from react-query and client)
+
 /**
  * Tanstack extension for procedure-based routers
  * Adds useQuery, useMutation, and getQueryKey to each RPC method
  */
 export type TanstackProcedureExtension<T> = {
-  [K in keyof T]: T[K] extends (...args: infer Args) => infer R
-    ? T[K] & {
+  [K in keyof T]: T[K] extends {
+    input: any;
+    output: any;
+  }
+    ? {
         useQuery: (
-          input: Args extends [infer A, ...any[]] ? A : void,
+          input: T[K]["input"] extends ZodType<infer I> ? I : never,
           opts?: UseQueryOptions<
-            UnwrapPromise<R>,
+            T[K]["output"] extends ZodType<infer O> ? O : never,
             DefaultError,
-            UnwrapPromise<R>,
-            [string, Args extends [infer A, ...any[]] ? A : void]
+            T[K]["output"] extends ZodType<infer O> ? O : never,
+            [string, T[K]["input"] extends ZodType<infer I> ? I : never]
           >,
-        ) => UseQueryResult<UnwrapPromise<R>, DefaultError>;
+        ) => UseQueryResult<
+          T[K]["output"] extends ZodType<infer O> ? O : never,
+          DefaultError
+        >;
         useMutation: (
           opts?: UseMutationOptions<
+            T[K]["output"] extends ZodType<infer O> ? O : never,
+            DefaultError,
+            T[K]["input"] extends ZodType<infer I> ? I : never
+          >,
+        ) => UseMutationResult<
+          T[K]["output"] extends ZodType<infer O> ? O : never,
+          DefaultError,
+          T[K]["input"] extends ZodType<infer I> ? I : never
+        >;
+        getQueryKey: (
+          input: T[K]["input"] extends ZodType<infer I> ? I : never,
+        ) => [string, T[K]["input"] extends ZodType<infer I> ? I : never];
+      }
+    : T[K] extends (...args: infer Args) => infer R
+      ? T[K] & {
+          useQuery: (
+            input: Args extends [infer A, ...any[]] ? A : void,
+            opts?: UseQueryOptions<
+              UnwrapPromise<R>,
+              DefaultError,
+              UnwrapPromise<R>,
+              [string, Args extends [infer A, ...any[]] ? A : void]
+            >,
+          ) => UseQueryResult<UnwrapPromise<R>, DefaultError>;
+          useMutation: (
+            opts?: UseMutationOptions<
+              UnwrapPromise<R>,
+              DefaultError,
+              Args extends [infer A, ...any[]] ? A : void
+            >,
+          ) => UseMutationResult<
             UnwrapPromise<R>,
             DefaultError,
             Args extends [infer A, ...any[]] ? A : void
-          >,
-        ) => UseMutationResult<
-          UnwrapPromise<R>,
-          DefaultError,
-          Args extends [infer A, ...any[]] ? A : void
-        >;
-        getQueryKey: (
-          input: Args extends [infer A, ...any[]] ? A : void,
-        ) => [string, Args extends [infer A, ...any[]] ? A : void];
-      }
-    : T[K] extends object
-      ? TanstackProcedureExtension<T[K]>
-      : T[K];
+          >;
+          getQueryKey: (
+            input: Args extends [infer A, ...any[]] ? A : void,
+          ) => [string, Args extends [infer A, ...any[]] ? A : void];
+        }
+      : T[K] extends object
+        ? TanstackProcedureExtension<T[K]>
+        : T[K];
 };
 
 /**
