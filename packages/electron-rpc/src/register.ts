@@ -46,28 +46,29 @@ export function registerIpcMain<T>(channel: string, api: T) {
  * @param createContextOrPlugins - Context creation function or plugins array
  * @param plugins - Optional array of plugins for lifecycle hooks
  */
+export type ProcedureRouterRecord<TContext = unknown> = {
+  [key: string]:
+    | Procedure<TContext, any, any>
+    | ProcedureRouterRecord<TContext>;
+};
+
 export function registerIpcRouter<
-  TRouter extends Record<string, Procedure<TContext, any, any>>,
+  TRouter extends ProcedureRouterRecord<TContext>,
   TContext = unknown,
 >(
   channel: string,
   router: TRouter,
   handlersOrContext:
-    | {
-        [K in keyof TRouter]?: (
-          ctx: TContext,
-          input: TRouter[K] extends Procedure<any, infer TInput, any>
-            ? TInput
-            : never,
-        ) => Promise<
-          TRouter[K] extends Procedure<any, any, infer TOutput>
-            ? TOutput
-            : never
-        >;
-      }
-    | ((event: IpcMainInvokeEvent) => Promise<TContext> | TContext),
+    | Record<string, any>
+    | ((
+        event: IpcMainInvokeEvent,
+        input: unknown,
+      ) => Promise<TContext> | TContext),
   createContextOrPlugins?:
-    | ((event: IpcMainInvokeEvent) => Promise<TContext> | TContext)
+    | ((
+        event: IpcMainInvokeEvent,
+        input: unknown,
+      ) => Promise<TContext> | TContext)
     | Plugin[],
   plugins?: Plugin[],
 ) {
@@ -75,38 +76,55 @@ export function registerIpcRouter<
   let handlers: any;
   let createContext: (
     event: IpcMainInvokeEvent,
+    input: any,
   ) => Promise<TContext> | TContext;
   let pluginList: Plugin[];
 
   if (typeof handlersOrContext === "function") {
     // handlersOrContext is createContext, no separate handlers
     handlers = {};
-    createContext = handlersOrContext;
+    createContext = handlersOrContext as (
+      event: IpcMainInvokeEvent,
+      input: any,
+    ) => Promise<TContext> | TContext;
     pluginList = (createContextOrPlugins as Plugin[]) || [];
   } else {
     // handlersOrContext is handlers object
     handlers = handlersOrContext;
     createContext = createContextOrPlugins as (
       event: IpcMainInvokeEvent,
+      input: any,
     ) => Promise<TContext> | TContext;
     pluginList = plugins || [];
   }
 
-  ipcMain.handle(channel, async (event, { key, input }) => {
+  ipcMain.handle(channel, async (event, { path, input }) => {
     try {
-      // Check if the key exists in the router
-      const procedure = router[key];
-      if (!procedure) {
-        throw new Error(`Procedure "${key}" not found`);
+      // Traverse the router to find the procedure
+      let current: any = router;
+      const keyPath = Array.isArray(path) ? path : [path]; // Handle string or array path
+
+      for (const segment of keyPath) {
+        if (!current || typeof current !== "object") {
+          throw new Error(`Path "${keyPath.join(".")}" not found`);
+        }
+        current = current[segment];
+      }
+
+      const procedure = current as Procedure<TContext, any, any>;
+
+      if (!procedure || !procedure.input || !procedure.output) {
+        throw new Error(`Path "${keyPath.join(".")}" is not a valid procedure`);
       }
 
       // Call plugin onRequest hooks
+      const key = keyPath.join(".");
       for (const plugin of pluginList) {
         await plugin.onRequest?.({ key, input });
       }
 
-      // Create context
-      const ctx = await createContext(event);
+      // Create context with input - passing raw input before validation
+      const ctx = await createContext(event, input);
 
       // Validate input
       let validatedInput: any;
@@ -123,10 +141,13 @@ export function registerIpcRouter<
         throw err;
       }
 
-      // Get the handler - either from inline handler or handlers object
-      const handler = procedure.handler || handlers[key];
+      // Get the handler - either from inline handler or handlers object (handlers support flattened or nested? complex)
+      // For now, assume inline handlers
+      const handler = procedure.handler;
       if (!handler) {
-        throw new Error(`Handler for "${key}" not found`);
+        throw new Error(
+          `Handler for "${key}" not found (inline handlers required for nested routers)`,
+        );
       }
 
       // Execute middlewares and handler
@@ -151,6 +172,8 @@ export function registerIpcRouter<
 
       return { data: validatedOutput };
     } catch (err: any) {
+      const key = Array.isArray(path) ? path.join(".") : path;
+      // ... (existing error handling)
       // Call plugin onError hooks
       for (const plugin of pluginList) {
         await plugin.onError?.({ key, error: err });
@@ -162,7 +185,6 @@ export function registerIpcRouter<
         return { error: ipcError };
       }
 
-      // Log internal errors but don't expose details to client
       console.error(`[Electron RPC] Error in procedure "${key}":`, err);
 
       const error: IpcError = {

@@ -5,7 +5,7 @@ import { queryClient } from './query-client'
 
 // Create proxy that uses key-based invocation for registerIpcRouter
 const proxy = createProxy<AppRouter>((path, args) => {
-  return window.rpc.invoke('rpc', { key: path[0], input: args[0] })
+  return window.rpc.invoke('rpc', { path, input: args[0] })
 })
 
 // Export direct RPC client

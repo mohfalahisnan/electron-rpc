@@ -43,7 +43,31 @@ export const userRouter = {
     .mutation(async (_ctx, input) => {
       console.log(`[Admin] Deleting user ${input.id}`)
       return { success: true }
-    })
+    }),
+
+  // Nested router example
+  patient: {
+    list: t
+      .input(z.object({ page: z.number().optional() }))
+      .output(
+        z.object({
+          message: z.string(),
+          result: z
+            .array(z.object({ id: z.string(), medicalRecordNumber: z.string(), name: z.string() }))
+            .optional()
+        })
+      )
+      .query(async (_ctx, _input) => {
+        // Mock data response
+        return {
+          message: 'Patients retrieved',
+          result: [
+            { id: 'p1', medicalRecordNumber: 'MRN001', name: 'John Doe' },
+            { id: 'p2', medicalRecordNumber: 'MRN002', name: 'Jane Smith' }
+          ]
+        }
+      })
+  }
 }
 
 export type AppRouter = typeof userRouter
